@@ -5,15 +5,17 @@ import os
 
 app = Flask(__name__)
 
-# RDS Connection
-db = pymysql.connect(
-    host=os.environ["DB_HOST"],
-    user=os.environ["DB_USER"],
-    password=os.environ["DB_PASSWORD"],
-    database=os.environ["DB_NAME"]
-)
+# ----- RDS Connection -----
+def get_db():
+    return pymysql.connect(
+        host=os.environ["DB_HOST"],
+        user=os.environ["DB_USER"],
+        password=os.environ["DB_PASSWORD"],
+        database=os.environ["DB_NAME"],
+        cursorclass=pymysql.cursors.DictCursor   # <<< lebih rapi
+    )
 
-# S3 client
+# ----- S3 Client -----
 s3 = boto3.client(
     "s3",
     aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
@@ -24,9 +26,11 @@ BUCKET = os.environ["S3_BUCKET"]
 
 @app.route("/")
 def index():
+    db = get_db()
     cursor = db.cursor()
     cursor.execute("SELECT id, name, email, file_url FROM users")
     rows = cursor.fetchall()
+    db.close()
     return render_template("index.html", data=rows)
 
 @app.route("/create", methods=["POST"])
@@ -41,20 +45,24 @@ def create():
         s3.upload_fileobj(file, BUCKET, filename)
         file_url = f"https://{BUCKET}.s3.amazonaws.com/{filename}"
 
+    db = get_db()
     cursor = db.cursor()
     cursor.execute(
         "INSERT INTO users (name, email, file_url) VALUES (%s, %s, %s)",
         (name, email, file_url)
     )
     db.commit()
+    db.close()
 
     return redirect("/")
 
 @app.route("/delete/<id>")
 def delete(id):
+    db = get_db()
     cursor = db.cursor()
     cursor.execute("DELETE FROM users WHERE id=%s", (id,))
     db.commit()
+    db.close()
     return redirect("/")
 
 @app.route("/health")
