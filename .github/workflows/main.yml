@@ -1,13 +1,13 @@
 name: Push Image to ECR
 
+on:
+  push:
+    branches: ["main"]
+
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: crudapp
   AWS_ACCOUNT_ID: 428713192206
-
-on:
-  push:
-    branches: ["main"]
 
 jobs:
   build:
