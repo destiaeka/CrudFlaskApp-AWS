@@ -1,0 +1,52 @@
+replicaCount: 1
+
+image:
+  repository: 428713192206.dkr.ecr.us-east-1.amazonaws.com/crudapp
+  pullPolicy: IfNotPresent
+  tag: "5f721c1cc91bf4cd84f38cd598d354dc1878735d"
+
+httpRoute:
+  enabled: false
+ingress:
+  enabled: false
+
+service:
+  type: LoadBalancer
+  port: 5000
+
+resources: 
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: 5000
+readinessProbe:
+  httpGet:
+    path: /
+    port: 5000
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 
+  targetMemoryUtilizationPercentage: 50
+
+env:
+  DB_NAME: crudapp
+  S3_BUCKET: destia-crudapp
+  APP_ENV: production
+
+secretEnv:
+  DB_HOST: "<endpoint rds>"
+  DB_USER: "<user rds>"
+  DB_PASSWORD: "<user rds password>"
+  AWS_ACCESS_KEY_ID: "<access key>"
+  AWS_SECRET_ACCESS_KEY: "<secret access key>"
+  AWS_SESSION_TOKEN: "<session token>"
