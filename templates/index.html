@@ -1,21 +1,104 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>CRUD App</title>
+    <title>AWS CRUD App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background: #f2f6fc;
+        }
+
+        h1 {
+            color: #2c3e50;
+        }
+
+        form {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            width: 350px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        input[type="text"], input[type="file"] {
+            width: 95%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #3498db;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+
+        th {
+            background: #3498db;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e1e1e1;
+        }
+
+        tr:hover {
+            background: #f0f8ff;
+        }
+
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
+
 <body>
     <h1>AWS CRUD App</h1>
 
     <h2>Add New Data</h2>
     <form action="/create" method="POST" enctype="multipart/form-data">
-        Name: <input type="text" name="name"><br><br>
-        Email: <input type="text" name="email"><br><br>
-        File Upload: <input type="file" name="file"><br><br>
+        Name:
+        <input type="text" name="name" required>
+
+        Email:
+        <input type="text" name="email" required>
+
+        File Upload:
+        <input type="file" name="file">
+
         <button type="submit">Submit</button>
     </form>
 
     <h2>Data List</h2>
-    <table border="1" cellpadding="6">
+
+    <table>
         <tr>
             <th>ID</th>
             <th>Name</th>
@@ -26,18 +109,18 @@
 
         {% for row in data %}
         <tr>
-            <td>{{ row[0] }}</td>
-            <td>{{ row[1] }}</td>
-            <td>{{ row[2] }}</td>
+            <td>{{ row.id }}</td>
+            <td>{{ row.name }}</td>
+            <td>{{ row.email }}</td>
             <td>
-                {% if row[3] %}
-                    <a href="{{ row[3] }}" target="_blank">View File</a>
+                {% if row.file_url %}
+                    <a href="{{ row.file_url }}" target="_blank">View File</a>
                 {% else %}
                     No file
                 {% endif %}
             </td>
             <td>
-                <a href="/delete/{{ row[0] }}">Delete</a>
+                <a href="/delete/{{ row.id }}">Delete</a>
             </td>
         </tr>
         {% endfor %}
