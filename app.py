@@ -1,63 +1,65 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, render_template, redirect
 import pymysql
 import boto3
-from config import Config
+import os
 
 app = Flask(__name__)
 
-# Database connection
-def get_db_connection():
-    return pymysql.connect(
-        host=Config.DB_HOST,
-        user=Config.DB_USER,
-        password=Config.DB_PASS,
-        database=Config.DB_NAME,
-        cursorclass=pymysql.cursors.DictCursor
-    )
-
-# S3 client
-s3_client = boto3.client(
-    "s3",
-    aws_access_key_id=Config.AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=Config.AWS_SECRET_ACCESS_KEY
+# RDS Connection
+db = pymysql.connect(
+    host=os.environ["DB_HOST"],
+    user=os.environ["DB_USER"],
+    password=os.environ["DB_PASSWORD"],
+    database=os.environ["DB_NAME"]
 )
 
-# Routes
+# S3 client
+s3 = boto3.client(
+    "s3",
+    aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
+    aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
+    aws_session_token=os.environ.get("AWS_SESSION_TOKEN")
+)
+BUCKET = os.environ["S3_BUCKET"]
+
 @app.route("/")
 def index():
-    return "Hello, Flask AWS App!"
+    cursor = db.cursor()
+    cursor.execute("SELECT id, name, email, file_url FROM users")
+    rows = cursor.fetchall()
+    return render_template("index.html", data=rows)
 
-@app.route("/items", methods=["GET"])
-def get_items():
-    conn = get_db_connection()
-    with conn.cursor() as cursor:
-        cursor.execute("SELECT * FROM items;")
-        result = cursor.fetchall()
-    conn.close()
-    return jsonify(result)
+@app.route("/create", methods=["POST"])
+def create():
+    name = request.form["name"]
+    email = request.form["email"]
+    file = request.files.get("file")
 
-@app.route("/items", methods=["POST"])
-def create_item():
-    data = request.json
-    name = data.get("name")
-    
-    conn = get_db_connection()
-    with conn.cursor() as cursor:
-        cursor.execute("INSERT INTO items (name) VALUES (%s);", (name,))
-        conn.commit()
-    conn.close()
-    return jsonify({"message": "Item created"}), 201
+    file_url = None
+    if file:
+        filename = f"uploads/{name}_{file.filename}"
+        s3.upload_fileobj(file, BUCKET, filename)
+        file_url = f"https://{BUCKET}.s3.amazonaws.com/{filename}"
 
-@app.route("/upload", methods=["POST"])
-def upload_file():
-    if 'file' not in request.files:
-        return jsonify({"error": "No file part"}), 400
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({"error": "No selected file"}), 400
-    
-    s3_client.upload_fileobj(file, Config.S3_BUCKET, file.filename)
-    return jsonify({"message": f"{file.filename} uploaded to S3"}), 200
+    cursor = db.cursor()
+    cursor.execute(
+        "INSERT INTO users (name, email, file_url) VALUES (%s, %s, %s)",
+        (name, email, file_url)
+    )
+    db.commit()
+
+    return redirect("/")
+
+@app.route("/delete/<id>")
+def delete(id):
+    cursor = db.cursor()
+    cursor.execute("DELETE FROM users WHERE id=%s", (id,))
+    db.commit()
+    return redirect("/")
+
+@app.route("/health")
+def health():
+    return "OK"
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=Config.FLASK_PORT)
+    app.run(host="0.0.0.0", port=5000)
