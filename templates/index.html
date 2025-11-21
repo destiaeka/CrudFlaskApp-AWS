@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CRUD App</title>
+</head>
+<body>
+    <h1>AWS CRUD App</h1>
+
+    <h2>Add New Data</h2>
+    <form action="/create" method="POST" enctype="multipart/form-data">
+        Name: <input type="text" name="name"><br><br>
+        Email: <input type="text" name="email"><br><br>
+        File Upload: <input type="file" name="file"><br><br>
+        <button type="submit">Submit</button>
+    </form>
+
+    <h2>Data List</h2>
+    <table border="1" cellpadding="6">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>File</th>
+            <th>Action</th>
+        </tr>
+
+        {% for row in data %}
+        <tr>
+            <td>{{ row[0] }}</td>
+            <td>{{ row[1] }}</td>
+            <td>{{ row[2] }}</td>
+            <td>
+                {% if row[3] %}
+                    <a href="{{ row[3] }}" target="_blank">View File</a>
+                {% else %}
+                    No file
+                {% endif %}
+            </td>
+            <td>
+                <a href="/delete/{{ row[0] }}">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+</body>
+</html>
