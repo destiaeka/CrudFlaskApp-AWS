@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crud-deployment
+  labels:
+    app: crud
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: crud
+  template:
+    metadata:
+      labels:
+        app: crud
+    spec:
+      containers:
+      - name: crudapp
+        image: 428713192206.dkr.ecr.us-east-1.amazonaws.com/crudapp:5f721c1cc91bf4cd84f38cd598d354dc1878735d
+        ports:
+        - containerPort: 5000
+        env:
+        # secret
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: crud-secret
+              key: DB_HOST
+
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: crud-secret
+              key: DB_USER
+
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: crud-secret
+              key: DB_PASSWORD
+
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: crud-secret
+              key: AWS_ACCESS_KEY_ID
+
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: crud-secret
+              key: AWS_SECRET_ACCESS_KEY
+
+        - name: AWS_SESSION_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: crud-secret
+              key: AWS_SESSION_TOKEN
+
+        # configmap
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: crud-configmap
+              key: DB_NAME
+
+        - name: S3_BUCKET
+          valueFrom:
+            configMapKeyRef:
+              name: crud-configmap
+              key: S3_BUCKET
+
+        - name: APP_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: crud-configmap
+              key: APP_ENV
