@@ -49,7 +49,7 @@ This project deploys a Flask CRUD application using AWS cloud-native services. I
    ```
 
 ## CI/CD
-Push to main → Build Docker → Push to ECR → Deploy to EKS automatically.
+Push to main → Build Docker → Push to ECR
 
 ## Tech Stack
 Flask • Docker • Kubernetes • AWS S3 • AWS RDS • AWS ECR • EKS • Helm • GitHub Actions
