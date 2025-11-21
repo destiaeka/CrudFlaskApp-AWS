@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: crud-configmap
+data:
+  DB_NAME: {{ .Values.env.DB_NAME }}
+  S3_BUCKET: {{ .Values.env.S3_BUCKET }}
+  APP_ENV: {{ .Values.env.APP_ENV }}
